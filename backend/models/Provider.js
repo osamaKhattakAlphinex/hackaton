@@ -92,4 +92,8 @@ const ProviderSchema = new mongoose.Schema({
   _id: false, // Ensure Mongoose respects our custom String _id instead of generating ObjectId
 });
 
+// Indexes for high performance searching
+ProviderSchema.index({ city: 1, active: 1 });
+ProviderSchema.index({ service_types: 1 });
+
 module.exports = mongoose.model('Provider', ProviderSchema);

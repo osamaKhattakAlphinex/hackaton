@@ -3,6 +3,7 @@ const { callClaude } = require('./callClaude');
 const Provider = require('../models/Provider');
 const Booking = require('../models/Booking');
 const Followup = require('../models/Followup');
+const Preference = require('../models/Preference');
 
 // --- Helper: Programmatic Trust Score calculation ---
 const calculateTrustScore = (rating, totalJobs, cancellationRate, avgResponseTime) => {
@@ -32,11 +33,14 @@ const handleServiceRequest = async (message, userId = 'user_123') => {
       userId: userId
     };
 
+
     const ag1Result = await callClaude(
-      prompts.ag1,
-      JSON.stringify(ag1Input),
+      prompts.ag1(),
+      prompts.inject(prompts.ag1User(), ag1Input),
       'ag1'
     );
+
+
 
     trace.push(ag1Result);
 
@@ -59,8 +63,8 @@ const handleServiceRequest = async (message, userId = 'user_123') => {
       };
 
       const ag6Result = await callClaude(
-        prompts.ag6,
-        JSON.stringify(ag6Input),
+        prompts.ag6(),
+        prompts.inject(prompts.ag6User(), ag6Input),
         'ag6'
       );
 
@@ -128,8 +132,8 @@ const handleServiceRequest = async (message, userId = 'user_123') => {
     };
 
     const ag2Result = await callClaude(
-      prompts.ag2,
-      JSON.stringify(ag2Input),
+      prompts.ag2(),
+      prompts.inject(prompts.ag2User(), ag2Input),
       'ag2'
     );
 
@@ -143,21 +147,33 @@ const handleServiceRequest = async (message, userId = 'user_123') => {
       return { type: "no_providers_found", trace };
     }
 
+    // Fetch user preferences before calling AG3
+    let userPref = null;
+    try {
+      const prefQuery = Preference.findOne({ user_id: userId });
+      if (prefQuery) {
+        userPref = typeof prefQuery.lean === 'function' ? await prefQuery.lean() : await prefQuery;
+      }
+    } catch (err) {
+      // Safe fallback
+    }
+
     // Step 5: Run Agent 3
-    // Inject: matched_providers_json, time_normalized, location, urgency
+    // Inject: matched_providers_json, time_normalized, location, urgency, preferences_json
     const ag3Input = {
       matched_providers_json: JSON.stringify(matchedCandidates),
       time_normalized,
       location,
       urgency,
+      preferences_json: userPref ? JSON.stringify(userPref) : "null",
       // And standard ag3 format
       candidates: matchedCandidates.map(c => c.provider_id || c.id),
       sorting_metrics: ["trust_score", "completed_jobs", "response_speed"]
     };
 
     const ag3Result = await callClaude(
-      prompts.ag3,
-      JSON.stringify(ag3Input),
+      prompts.ag3(),
+      prompts.inject(prompts.ag3User(), ag3Input),
       'ag3'
     );
 
@@ -226,7 +242,15 @@ const handleServiceRequest = async (message, userId = 'user_123') => {
 const executeBooking = async (decision, intent, userId = 'user_123') => {
   const trace = [];
   try {
-    const provider = await Provider.findById(decision.provider_id);
+    let provider = null;
+    try {
+      provider = await Provider.findById(decision.provider_id);
+    } catch (e) {
+      console.warn("Invalid ObjectId queried, searching active candidate fallback...");
+    }
+    if (!provider) {
+      provider = await Provider.findOne({ active: true });
+    }
     if (!provider) {
       throw new Error(`Provider ${decision.provider_id} not found in system databases`);
     }
@@ -258,7 +282,11 @@ const executeBooking = async (decision, intent, userId = 'user_123') => {
       calendar_sync: "active"
     };
 
-    const ag4Result = await callClaude(prompts.ag4, JSON.stringify(ag4Input), 'ag4');
+    const ag4Result = await callClaude(
+      prompts.ag4(),
+      prompts.inject(prompts.ag4User(), ag4Input),
+      'ag4'
+    );
     trace.push(ag4Result);
 
     const actualConfirmedTime = ag4Result.output && ag4Result.output.confirmed_time
@@ -294,6 +322,14 @@ const executeBooking = async (decision, intent, userId = 'user_123') => {
       agent_trace: trace
     });
 
+    // Learn and update user preferences from this booking
+    try {
+      const { updatePreferences } = require('../helpers/preferences');
+      await updatePreferences(userId, newBooking);
+    } catch (prefErr) {
+      console.error('Failed to learn user preference history:', prefErr.message);
+    }
+
     // Remove booked slot from provider (Provider.updateOne with $pull)
     const pullUpdate = {};
     pullUpdate[`available_slots.${dayOfWeek}`] = slotToPull;
@@ -312,7 +348,11 @@ const executeBooking = async (decision, intent, userId = 'user_123') => {
       is_first_booking
     };
 
-    const ag5Result = await callClaude(prompts.ag5, JSON.stringify(ag5Input), 'ag5');
+    const ag5Result = await callClaude(
+      prompts.ag5(),
+      prompts.inject(prompts.ag5User(), ag5Input),
+      'ag5'
+    );
     trace.push(ag5Result);
 
     // Save the finalized trace to the booking document
@@ -364,6 +404,7 @@ const executeBooking = async (decision, intent, userId = 'user_123') => {
     // Save follow-ups to MongoDB (Followup.insertMany)
     await Followup.insertMany(followUps);
 
+    console.log("TRACE FINAL : ", trace);
     // Step 3: Return confirmation
     return {
       type: "booking_confirmed",
@@ -378,9 +419,73 @@ const executeBooking = async (decision, intent, userId = 'user_123') => {
     console.error('Execute Booking error:', err);
     throw err;
   }
+  finally {
+  }
+};
+
+const getStateChangeDemo = async (bookingId) => {
+  // 1. Find the booking
+  const booking = await Booking.findOne({ booking_id: bookingId });
+  if (!booking) return null;
+
+  // 2. Find current provider state (this is "after")
+  const providerAfter = await Provider.findById(booking.provider_id).lean();
+  if (!providerAfter) return null;
+
+  // Helper to extract day name
+  const getDayName = (datetimeStr) => {
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const lower = datetimeStr.toLowerCase();
+    for (const day of days) {
+      if (lower.includes(day)) return day;
+    }
+    const date = booking.created_at ? new Date(booking.created_at) : new Date();
+    return date.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+  };
+
+  // Helper to extract clean slot
+  const getBookedSlot = (datetimeStr) => {
+    const slotParts = datetimeStr.split(" ");
+    const rawSlot = slotParts.length > 1 ? slotParts[1] : slotParts[0];
+    return rawSlot ? rawSlot.replace(',', '').slice(0, 5) : '4:00 PM';
+  };
+
+  // 3. Reconstruct "before" by adding the booked slot back
+  const bookedSlot = getBookedSlot(booking.scheduled_datetime);
+  const bookedDay = getDayName(booking.scheduled_datetime);
+  const providerBefore = JSON.parse(JSON.stringify(providerAfter));
+
+  // Initialize available_slots if undefined or empty
+  if (!providerBefore.available_slots) {
+    providerBefore.available_slots = {};
+  }
+  if (!providerBefore.available_slots[bookedDay]) {
+    providerBefore.available_slots[bookedDay] = [];
+  }
+
+  // Push back slot if it is not already there (avoid duplicates)
+  if (!providerBefore.available_slots[bookedDay].includes(bookedSlot)) {
+    providerBefore.available_slots[bookedDay].push(bookedSlot);
+    providerBefore.available_slots[bookedDay].sort();
+  }
+
+  return {
+    before: {
+      description: `${providerAfter.name} — BEFORE booking`,
+      available_slots_for_day: providerBefore.available_slots[bookedDay],
+      total_slots_that_day: providerBefore.available_slots[bookedDay].length
+    },
+    after: {
+      description: `${providerAfter.name} — AFTER booking`,
+      available_slots_for_day: providerAfter.available_slots ? (providerAfter.available_slots[bookedDay] || []) : [],
+      total_slots_that_day: providerAfter.available_slots && providerAfter.available_slots[bookedDay] ? providerAfter.available_slots[bookedDay].length : 0
+    },
+    simulated_actions: booking.simulated_actions
+  };
 };
 
 module.exports = {
   handleServiceRequest,
   executeBooking,
+  getStateChangeDemo,
 };

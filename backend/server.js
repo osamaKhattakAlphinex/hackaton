@@ -1,6 +1,9 @@
 // Load dotenv first
 require('dotenv').config();
 
+// Load and validate config
+const config = require('./config');
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -11,17 +14,12 @@ const rateLimit = require('express-rate-limit');
 const serviceRequestRoutes = require('./routes/serviceRequest');
 const bookingsRoutes = require('./routes/bookings');
 const providersRoutes = require('./routes/providers');
+const connectDB = require('./db/connect');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/hirefast_pk';
-
-// -------------------------------------------------------------
-// CORS Configuration
-// -------------------------------------------------------------
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:8081', 'http://localhost:19006'];
+const PORT = config.port;
+const MONGO_URI = config.mongodbUri;
+const allowedOrigins = config.allowedOrigins;
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -88,24 +86,8 @@ const confirmBookingLimiter = rateLimit({
 app.use('/api/service-request', serviceRequestLimiter);
 app.use('/api/confirm-booking', confirmBookingLimiter);
 
-// Database connection with retries (max 3 retries)
-const connectWithRetry = (retries = 3) => {
-  console.log(`Connecting to MongoDB... (Remaining retries: ${retries})`);
-  mongoose
-    .connect(MONGO_URI)
-    .then(() => console.log('MongoDB Connected Successfully!'))
-    .catch((err) => {
-      console.error('MongoDB connection failure:', err.message);
-      if (retries > 0) {
-        setTimeout(() => connectWithRetry(retries - 1), 5000);
-      } else {
-        console.error('Max retries reached. Exiting backend process.');
-        process.exit(1);
-      }
-    });
-};
-
-connectWithRetry();
+// Database connection
+connectDB(MONGO_URI);
 
 // Register routes
 app.use('/api', serviceRequestRoutes);
