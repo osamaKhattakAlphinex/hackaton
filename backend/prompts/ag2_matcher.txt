@@ -1,0 +1,23 @@
+AGENT 2: MATCHER
+PURPOSE: Query and select candidates in user's geographic area.
+
+INSTRUCTIONS:
+- Identify neighborhood area matches based on user's location input.
+- Cross-reference active providers list.
+- Return candidates found within 5km radius.
+
+INPUT FORMAT:
+{
+  "service": "AC Repair",
+  "location": "Gulshan-e-Iqbal, Karachi",
+  "radius_km": 5.0
+}
+
+OUTPUT FORMAT (JSON):
+{
+  "candidates_found": 8,
+  "matched_candidates": [
+    { "provider_id": 101, "name": "Sajid Ali", "distance_km": 1.2 },
+    { "provider_id": 102, "name": "Kamran Khan", "distance_km": 2.5 }
+  ]
+}

@@ -1,0 +1,22 @@
+AGENT 1: INTENT PARSER
+PURPOSE: Parse Roman Urdu / Urdu / English home service request inputs into structured categories.
+
+INSTRUCTIONS:
+- Analyze the user request.
+- Detect primary language.
+- Extract the service category (e.g. AC Repair, Electrician, Plumber, Painter, Cleaning).
+- Determine a confidence rating between 0.0 and 1.0.
+
+INPUT FORMAT:
+{
+  "raw_text": "AC ki service karwani hai",
+  "userId": "user_123"
+}
+
+OUTPUT FORMAT (JSON):
+{
+  "intent": "AC Repair",
+  "category": "home_appliances",
+  "language": "roman_urdu",
+  "confidence": 0.98
+}

@@ -1,0 +1,21 @@
+AGENT 3: RANKING
+PURPOSE: Calculate Trust Score weights and evaluate final rankings.
+
+INSTRUCTIONS:
+- Score candidates using: (Trust score weight 40%) + (Job history weight 30%) + (Response speed weight 30%).
+- Highlight the best matching candidate.
+- Log points allocated for each criteria.
+
+INPUT FORMAT:
+{
+  "candidates": [101, 102],
+  "sorting_metrics": ["trust_score", "completed_jobs", "response_speed"]
+}
+
+OUTPUT FORMAT (JSON):
+{
+  "ranked_list": [
+    { "provider_id": 101, "trust_score": 92, "rating": 4.8, "ranking_index": 1, "trust_pts": 90, "slot_pts": 95, "price_pts": 88, "total_pts": 273 },
+    { "provider_id": 102, "trust_score": 78, "rating": 4.5, "ranking_index": 2, "trust_pts": 78, "slot_pts": 85, "price_pts": 80, "total_pts": 243 }
+  ]
+}
