@@ -23,19 +23,8 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-// Mock API for booking confirmation
-const api = {
-  confirmBooking: async (decision, intent, userId = 'user_123') => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          status: 'success',
-          bookingId: `BK-${Math.floor(100000 + Math.random() * 900000)}`,
-        });
-      }, 1500);
-    });
-  },
-};
+// Import the real API service
+import * as api from '../services/api';
 
 export default function ResultsScreen() {
   const router = useRouter();
@@ -133,43 +122,39 @@ export default function ResultsScreen() {
       router.push({
         pathname: '/ConfirmationScreen',
         params: {
-          booking_id: response.bookingId || 'BK-IS4X9M2',
+          booking_id: response.bookingId || response.booking_id || 'BK-IS4X9M2',
           confirmation: JSON.stringify({
-            user_confirmation_message: `Shabash! Aapka booking confirm ho chuka hai. ${selectedProvider.name} aaj shaam ${selectedProvider.datetime.split(',')[1] || '4:00 PM'} baje ${selectedProvider.cost} ki cost estimate par AC repair ke liye tashreef layenge.`,
+            user_confirmation_message: response.confirmation?.roman_urdu || response.confirmation?.english || `Shabash! Aapka booking confirm ho chuka hai. ${selectedProvider.name} aaj shaam ${selectedProvider.datetime.split(',')[1] || '4:00 PM'} baje ${selectedProvider.cost} ki cost estimate par AC repair ke liye tashreef layenge.`,
             provider_name: selectedProvider.name,
             datetime: selectedProvider.datetime,
             cost: selectedProvider.cost
           }),
-          follow_up: JSON.stringify([
-            {
-              trigger_label: "Booking Created",
-              message_preview: `${selectedProvider.name} has accepted the booking request`,
-              channel: "notifications-outline",
-              time: "Just now"
-            },
-            {
-              trigger_label: "ETA Alert",
-              message_preview: "Technician leaves location & starts journey",
-              channel: "phone-portrait-outline",
-              time: "In 3 hours"
-            },
-            {
-              trigger_label: "Arrival Confirmation",
-              message_preview: "Pin verification upon provider arrival",
-              channel: "logo-whatsapp",
-              time: selectedProvider.datetime
-            }
-          ]),
-          state_change: JSON.stringify({
+          follow_up: JSON.stringify(
+            response.follow_up ? response.follow_up.map(f => ({
+              trigger_label: f.trigger_label || f.trigger_datetime || 'ETA Alert',
+              message_preview: f.message || f.message_preview || 'Technician scheduled in roster',
+              channel: f.channel || 'phone-portrait-outline',
+              time: f.trigger_datetime || 'Just now'
+            })) : [
+              {
+                trigger_label: "Booking Created",
+                message_preview: `${selectedProvider.name} has accepted the booking request`,
+                channel: "notifications-outline",
+                time: "Just now"
+              }
+            ]
+          ),
+          state_change: JSON.stringify(response.state_change || {
             old_state: "searching",
             new_state: "confirmed_scheduled",
             timestamp: new Date().toISOString()
           }),
-          trace: JSON.stringify([
-            { agent: "Intent Parser", duration: "1.2s", status: "success" },
-            { agent: "Matcher", duration: "1.4s", status: "success" },
-            { agent: "Ranking", duration: "1.1s", status: "success" },
-            { agent: "Final assembly", duration: "0.8s", status: "success" }
+          trace: JSON.stringify(response.trace ? response.trace.map(t => ({
+            agent: t.agent || t.role || 'Agent',
+            duration: t.duration || '0.5s',
+            status: t.status || 'success'
+          })) : [
+            { agent: "Intent Parser", duration: "1.2s", status: "success" }
           ])
         },
       });

@@ -1,0 +1,176 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Crypto from 'expo-crypto';
+
+import { Platform } from 'react-native';
+
+// BASE URL for the HireFast PK Backend Server resolved dynamically
+const getBaseUrl = () => {
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  // If the env variable is configured and is NOT the placeholder '192.168.x.x', use it
+  if (envUrl && !envUrl.includes('192.168.x.x') && !envUrl.includes('x.x')) {
+    return envUrl;
+  }
+  // Android emulator loopback fallback to computer host
+  if (Platform.OS === 'android') {
+    return "http://10.0.2.2:3001";
+  }
+  // iOS simulator / Web fallback
+  return "http://localhost:3001";
+};
+
+const BASE_URL = getBaseUrl();
+
+/**
+ * Standardizes API and system errors for UI warning displays.
+ */
+export const handleApiError = (error) => {
+  if (error.type || error.status) {
+    return error;
+  }
+  // Check if error is a Type or Network error from Fetch failure
+  if (
+    error instanceof TypeError || 
+    error.message?.toLowerCase().includes('network') || 
+    error.message?.toLowerCase().includes('fetch')
+  ) {
+    return {
+      type: "network_error",
+      message: "Unable to connect to the HireFast PK backend server. Please make sure the backend is running and reachable."
+    };
+  }
+
+  return {
+    type: "unknown_error",
+    message: error.message || "An unexpected error occurred. Please try again."
+  };
+};
+
+/**
+ * Shared Fetch Wrapper with base URL, Content-Type, and abortable timeout handling.
+ */
+export const apiRequest = async (path, options = {}) => {
+  const cleanBase = BASE_URL.replace(/\/$/, '');
+  const cleanPath = path.replace(/^\//, '');
+  const url = `${cleanBase}/${cleanPath}`;
+
+  // pipelines run multiple LLM models and can be slow: default timeout is 30 seconds
+  const timeout = options.timeout || 30000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  const fetchOptions = {
+    ...options,
+    signal: controller.signal,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  };
+
+  try {
+    const response = await fetch(url, fetchOptions);
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({}));
+      throw {
+        status: response.status,
+        message: errorBody.error || `HTTP error! status: ${response.status}`
+      };
+    }
+
+    return await response.json();
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw {
+        type: 'timeout',
+        message: "The AI agent pipeline took too long to respond. Please try again."
+      };
+    }
+    throw handleApiError(err);
+  }
+};
+
+/**
+ * Helper to fetch or dynamically persist a unique user ID for the hackathon.
+ */
+export const getOrCreateUserId = async () => {
+  try {
+    let userId = await AsyncStorage.getItem("userId");
+    if (!userId) {
+      userId = `usr-${Crypto.randomUUID().substring(0, 8).toUpperCase()}`;
+      await AsyncStorage.setItem("userId", userId);
+    }
+    return userId;
+  } catch (err) {
+    console.warn("AsyncStorage unavailable, falling back to static session ID:", err.message);
+    return "usr-HACKATHON_DEMO";
+  }
+};
+
+/**
+ * POST /api/service-request
+ * Sends the user's natural language request to Agent 1 (Intent Parser).
+ */
+export const sendServiceRequest = async (message, userId) => {
+  return apiRequest('/api/service-request', {
+    method: 'POST',
+    body: JSON.stringify({ message, userId }),
+    timeout: 30000 // Pipeline agent chain is slow: allow up to 30s
+  });
+};
+
+/**
+ * POST /api/confirm-booking
+ * Excutes Provider lock, slot extraction (Agent 4) and saves the booking.
+ */
+export const confirmBooking = async (decision, intent, userId) => {
+  return apiRequest('/api/confirm-booking', {
+    method: 'POST',
+    body: JSON.stringify({ decision, intent, userId }),
+    timeout: 30000 // Booking execution includes dispatch trace: allow up to 30s
+  });
+};
+
+/**
+ * POST /api/clarify
+ * Submits the clarification answer and resumes the intent execution.
+ */
+export const submitClarification = async (answer, originalMessage, userId) => {
+  return apiRequest('/api/clarify', {
+    method: 'POST',
+    body: JSON.stringify({ answer, originalMessage, userId }),
+    timeout: 30000
+  });
+};
+
+/**
+ * GET /api/trace/:bookingId
+ * Returns the transparent agent execution logs and telemetry trace.
+ */
+export const getTrace = async (bookingId) => {
+  return apiRequest(`/api/trace/${bookingId}`, {
+    method: 'GET'
+  });
+};
+
+/**
+ * GET /api/state/:bookingId
+ * Returns the before/after state simulation comparing schedule shifts.
+ */
+export const getStateChange = async (bookingId) => {
+  return apiRequest(`/api/state/${bookingId}`, {
+    method: 'GET'
+  });
+};
+
+/**
+ * GET /api/bookings/:userId
+ * Retrieves history list of all booking instances generated by a user.
+ */
+export const getBookingHistory = async (userId) => {
+  return apiRequest(`/api/bookings/${userId}`, {
+    method: 'GET'
+  });
+};

@@ -18,25 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { COLORS, SIZES } from '../constants/theme';
 
-// Mock API Call
-const api = {
-  sendServiceRequest: async (message, userId = 'user_123') => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (!message || message.trim().length === 0) {
-          reject(new Error('Please enter a valid request.'));
-        } else if (message.toLowerCase().includes('fail')) {
-          reject(new Error('System connection timeout. Please try again.'));
-        } else {
-          resolve({
-            requestId: `REQ-${Math.floor(100000 + Math.random() * 900000)}`,
-            trace: `TR-${Math.floor(100000 + Math.random() * 900000)}`,
-          });
-        }
-      }, 2000);
-    });
-  },
-};
+// Quick route to processing pipeline screen
 
 const LANGUAGES = [
   { id: 'english', label: 'English' },
