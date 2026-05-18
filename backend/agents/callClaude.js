@@ -105,35 +105,55 @@ const getMockPayload = (agentName, userPrompt) => {
 async function callClaude(systemPrompt, userPrompt, agentName) {
   const startTime = Date.now();
 
-  // 1. Google Gemini Adapter Path (using modern gemini-2.5-flash model on v1beta endpoint)
+  // 1. Google Gemini Adapter Path with Multi-Model Failover (supporting 2.5-flash, 1.5-flash, and 1.5-pro)
   if (isGoogleKey) {
     try {
       const systemInstruction = `You are a system agent. You MUST respond with a valid raw JSON object matching the requested output schema. Do NOT wrap the response in markdown blocks like \`\`\`json. Do not include any conversational filler.\n\n${systemPrompt || ''}`;
       const combinedPrompt = `System Context:\n${systemInstruction}\n\nUser Input:\n${userPrompt}`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ text: combinedPrompt }]
-          }],
-          generationConfig: {
-            responseMimeType: "application/json"
-          }
-        })
-      });
+      const models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+      let lastError = null;
+      let selectedModel = null;
+      let data = null;
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Gemini API error (HTTP ${response.status}): ${errorText}`);
+      for (const model of models) {
+        try {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{ text: combinedPrompt }]
+              }],
+              generationConfig: {
+                responseMimeType: "application/json"
+              }
+            })
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Gemini API error (HTTP ${response.status}): ${errorText}`);
+          }
+
+          const parsedJson = await response.json();
+          if (!parsedJson.candidates || parsedJson.candidates.length === 0 || !parsedJson.candidates[0].content) {
+            throw new Error('Gemini API returned an empty response.');
+          }
+
+          data = parsedJson;
+          selectedModel = model;
+          break; // Successfully completed
+        } catch (err) {
+          console.warn(`[${agentName}] Model ${model} failed or overloaded: ${err.message}. Retrying next candidate...`);
+          lastError = err;
+        }
       }
 
-      const data = await response.json();
-      if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content) {
-        throw new Error('Gemini API returned an empty response.');
+      if (!data) {
+        throw lastError || new Error("All Gemini model options exhausted.");
       }
 
       const rawText = data.candidates[0].content.parts[0].text;
@@ -152,7 +172,7 @@ async function callClaude(systemPrompt, userPrompt, agentName) {
         }
       }
 
-      console.log(`[${agentName}] (Gemini Live - gemini-2.5-flash) ${duration_ms}ms`);
+      console.log(`[${agentName}] (Gemini Live - ${selectedModel}) ${duration_ms}ms`);
 
       return {
         success: true,

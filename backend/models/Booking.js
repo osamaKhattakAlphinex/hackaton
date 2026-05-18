@@ -71,4 +71,7 @@ const BookingSchema = new mongoose.Schema({
   timestamps: true 
 });
 
+// Indexes for high performance queries and uniqueness
+BookingSchema.index({ user_id: 1, created_at: -1 });
+
 module.exports = mongoose.model('Booking', BookingSchema);

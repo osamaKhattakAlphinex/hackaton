@@ -7,6 +7,7 @@ import {
   Animated,
   TouchableOpacity,
   Dimensions,
+  ScrollView,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,71 +15,9 @@ import { COLORS } from '../constants/theme';
 
 const { width } = Dimensions.get('window');
 
-// High-fidelity Mock API to simulate agent tracking
-const api = {
-  sendServiceRequest: async (message, userId = 'user_123') => {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const lowerMsg = (message || '').toLowerCase();
-        if (lowerMsg.includes('fail')) {
-          resolve({
-            type: 'error',
-            message: 'Unable to connect to service registry. Please retry.',
-          });
-        } else if (lowerMsg.includes('help') || lowerMsg.includes('details') || lowerMsg.includes('urdu')) {
-          resolve({
-            type: 'needs_clarification',
-            clarificationPrompt: 'Aapko kis qism ki service chahiye? Baraye meherbani wazahat karein.',
-          });
-        } else {
-          resolve({
-            type: 'awaiting_confirmation',
-            intent: 'AC Repair',
-            matched_providers: [
-              {
-                id: 1,
-                name: 'Sajid Ali',
-                trust_score: 92,
-                rating: 4.8,
-                jobs: 140,
-                response_time: '15 mins',
-                service: 'AC Repair',
-                location: 'Gulshan-e-Iqbal, Karachi',
-                datetime: 'Today, 4:00 PM',
-                cost: 'Est. Rs. 2,000 – 4,500',
-                trust_pts: 90,
-                slot_pts: 95,
-                price_pts: 88,
-                total_pts: 273,
-              },
-              {
-                id: 2,
-                name: 'Kamran Khan',
-                trust_score: 78,
-                rating: 4.5,
-                jobs: 92,
-                response_time: '30 mins',
-                service: 'AC Repair',
-                location: 'DHA Phase 6, Karachi',
-                datetime: 'Today, 5:30 PM',
-                cost: 'Est. Rs. 2,200 – 4,800',
-                trust_pts: 78,
-                slot_pts: 85,
-                price_pts: 80,
-                total_pts: 243,
-                why_not_selected: 'Kamran Khan has a lower Trust Score (78 vs 92) and takes longer to respond (30 mins vs 15 mins).',
-              },
-            ],
-            decision: {
-              provider_id: 1,
-              decision_explanation: 'Sajid Ali ko unke behtareen 92% Trust Score aur 15-minute ke kamtareen response time ki wajah se select kiya gaya hai. Woh aapki location ke bohot kareeb hain aur unke rates market se behtar hain.',
-            },
-          });
-        }
-      }, 5000); // 5 seconds simulated backend processing
-    });
-  },
-};
+// Import the real API service
+import * as api from '../services/api';
+
 
 export default function ProcessingScreen() {
   const router = useRouter();
@@ -267,7 +206,7 @@ export default function ProcessingScreen() {
             router.push({
               pathname: '/ClarificationScreen',
               params: {
-                clarificationPrompt: response.clarificationPrompt,
+                clarificationPrompt: response.clarificationPrompt || response.clarification || response.clarification_prompt || 'Aapko kis qism ki service chahiye? Wazahat karein.',
                 message: message,
               },
             });
@@ -284,7 +223,7 @@ export default function ProcessingScreen() {
         });
       }
     } catch (err) {
-      setErrorData('Kuch ghalat ho gaya. Dobara koshish karein.');
+      setErrorData(err.message || 'Kuch ghalat ho gaya. Dobara koshish karein.');
       setLoading(false);
     }
   };
@@ -329,7 +268,8 @@ export default function ProcessingScreen() {
         <View style={styles.placeholder} />
       </View>
 
-      {/* Pulsing Wordmark Logo Section */}
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* Pulsing Wordmark Logo Section */}
       <View style={styles.logoContainer}>
         <Animated.View
           style={[
@@ -491,6 +431,7 @@ export default function ProcessingScreen() {
           </TouchableOpacity>
         )}
       </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -569,7 +510,11 @@ const styles = StyleSheet.create({
   stepsContainer: {
     paddingHorizontal: 24,
     gap: 16,
-    flex: 1,
+    marginBottom: 24,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 24,
   },
   stepCard: {
     flexDirection: 'row',

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const orchestrator = require('../agents/orchestrator');
 const Booking = require('../models/Booking');
+const Preference = require('../models/Preference');
 const { validateBody } = require('../middleware/validate');
 
 // Validation Schemas
@@ -101,16 +102,33 @@ router.get('/state/:bookingId', async (req, res, next) => {
   const { bookingId } = req.params;
 
   try {
-    const booking = await Booking.findOne({ booking_id: bookingId });
-    if (!booking) {
+    const demoData = await orchestrator.getStateChangeDemo(bookingId);
+    if (!demoData) {
       return res.status(404).json({ error: `Booking record with ID ${bookingId} not found.` });
     }
 
-    res.status(200).json({
-      before: booking.system_state_change.before,
-      after: booking.system_state_change.after,
-      simulated_actions: booking.simulated_actions,
-    });
+    res.status(200).json(demoData);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/preferences/:userId
+router.get('/preferences/:userId', async (req, res, next) => {
+  const { userId } = req.params;
+
+  try {
+    const preference = await Preference.findOne({ user_id: userId });
+    if (!preference) {
+      return res.status(200).json({
+        user_id: userId,
+        preferred_services: [],
+        preferred_areas: [],
+        preferred_time_of_day: 'afternoon',
+        last_updated: null
+      });
+    }
+    res.status(200).json(preference);
   } catch (err) {
     next(err);
   }

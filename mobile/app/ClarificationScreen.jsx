@@ -10,6 +10,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  ScrollView,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -61,7 +62,8 @@ export default function ClarificationScreen() {
               <View style={styles.placeholder} />
             </View>
 
-            {/* Prompt Area */}
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+              {/* Prompt Area */}
             <View style={styles.content}>
               <View style={styles.iconContainer}>
                 <Ionicons name="chatbubble-ellipses-outline" size={48} color={COLORS.primary} />
@@ -109,6 +111,7 @@ export default function ClarificationScreen() {
                 <Text style={styles.submitBtnText}>Submit Details</Text>
               </TouchableOpacity>
             </View>
+            </ScrollView>
           </View>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
@@ -151,9 +154,13 @@ const styles = StyleSheet.create({
     width: 44,
   },
   content: {
-    flex: 1,
     alignItems: 'center',
     paddingTop: 32,
+    marginBottom: 24,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 24,
   },
   iconContainer: {
     width: 80,

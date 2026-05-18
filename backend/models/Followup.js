@@ -49,4 +49,7 @@ const FollowupSchema = new mongoose.Schema({
   timestamps: true 
 });
 
+// Index for dispatching queries
+FollowupSchema.index({ booking_id: 1, sent: 1 });
+
 module.exports = mongoose.model('Followup', FollowupSchema);
