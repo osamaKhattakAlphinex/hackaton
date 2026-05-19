@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
@@ -12,6 +11,7 @@ import {
   Keyboard,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
@@ -43,6 +43,10 @@ export default function ClarificationScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.bgContainer}>
+        <View style={styles.glowIndigo} />
+        <View style={styles.glowCyan} />
+      </View>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -122,7 +126,31 @@ export default function ClarificationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.darkBackground,
+  },
+  bgContainer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.darkBackground,
+    zIndex: -1,
+    overflow: 'hidden',
+  },
+  glowIndigo: {
+    position: 'absolute',
+    top: -100,
+    left: -100,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(99, 102, 241, 0.14)',
+  },
+  glowCyan: {
+    position: 'absolute',
+    bottom: 100,
+    right: -120,
+    width: 340,
+    height: 340,
+    borderRadius: 170,
+    backgroundColor: 'rgba(34, 211, 238, 0.1)',
   },
   keyboardView: {
     flex: 1,
@@ -137,7 +165,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
   backBtn: {
     width: 44,
@@ -167,6 +195,8 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     backgroundColor: COLORS.primaryLight,
+    borderColor: COLORS.borderPrimary,
+    borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
@@ -188,15 +218,20 @@ const styles = StyleSheet.create({
   },
   promptCard: {
     width: '100%',
-    backgroundColor: COLORS.primaryLight,
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: COLORS.cardBackground,
     borderColor: COLORS.borderPrimary,
     borderWidth: 1,
+    borderRadius: 20,
+    padding: 16,
     marginBottom: 20,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 4,
   },
   promptText: {
-    color: COLORS.primary,
+    color: COLORS.accent,
     fontSize: 15,
     fontWeight: '600',
     textAlign: 'center',
@@ -205,9 +240,9 @@ const styles = StyleSheet.create({
   textInput: {
     width: '100%',
     minHeight: 100,
-    backgroundColor: '#F9FAFB',
-    borderColor: '#E5E7EB',
-    borderWidth: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1.2,
     borderRadius: 16,
     padding: 14,
     fontSize: 15,
@@ -235,12 +270,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 5,
   },
   submitBtnText: {
-    color: COLORS.surface,
+    color: COLORS.textPrimary,
     fontSize: 16,
     fontWeight: '700',
   },

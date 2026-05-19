@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   Animated,
@@ -12,6 +11,7 @@ import {
   Platform,
   UIManager,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
@@ -168,11 +168,15 @@ export default function ConfirmationScreen() {
   // Animate background color dynamically using interpolate
   const interpolatedBg = bgFlashAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [COLORS.surface, '#ECFDF5'],
+    outputRange: ['rgba(15, 23, 42, 0)', 'rgba(16, 185, 129, 0.18)'],
   });
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      <View style={styles.bgContainer}>
+        <View style={styles.glowIndigo} />
+        <View style={styles.glowCyan} />
+      </View>
       <Animated.View style={[styles.container, { backgroundColor: interpolatedBg }]}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -367,7 +371,31 @@ export default function ConfirmationScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.darkBackground,
+  },
+  bgContainer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.darkBackground,
+    zIndex: -1,
+    overflow: 'hidden',
+  },
+  glowIndigo: {
+    position: 'absolute',
+    top: -100,
+    left: -100,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(99, 102, 241, 0.14)',
+  },
+  glowCyan: {
+    position: 'absolute',
+    bottom: 100,
+    right: -120,
+    width: 340,
+    height: 340,
+    borderRadius: 170,
+    backgroundColor: 'rgba(34, 211, 238, 0.1)',
   },
   container: {
     flex: 1,
@@ -385,8 +413,8 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: '#ECFDF5',
-    borderColor: '#A7F3D0',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    borderColor: 'rgba(16, 185, 129, 0.3)',
     borderWidth: 2,
     justifyContent: 'center',
     alignItems: 'center',
@@ -441,33 +469,33 @@ const styles = StyleSheet.create({
     gap: 8,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 2,
   },
   bookingIdLabel: {
-    color: COLORS.primaryLight,
+    color: COLORS.textPrimary,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.5,
   },
   bookingIdText: {
-    color: COLORS.surface,
+    color: COLORS.textPrimary,
     fontSize: 14,
     fontWeight: 'bold',
     fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace',
   },
   confirmationCard: {
-    backgroundColor: COLORS.surface,
-    borderColor: COLORS.borderPrimary,
-    borderWidth: 1,
+    backgroundColor: COLORS.cardBackground,
+    borderColor: COLORS.glassBorder,
+    borderWidth: 1.2,
     borderRadius: 20,
     padding: 20,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
     shadowRadius: 12,
-    elevation: 2,
+    elevation: 4,
     marginBottom: 28,
   },
   bulbHeader: {
@@ -490,7 +518,9 @@ const styles = StyleSheet.create({
   highlightsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
     borderRadius: 12,
     padding: 12,
     gap: 8,
@@ -518,11 +548,16 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   timelineCard: {
-    backgroundColor: COLORS.surface,
-    borderColor: '#E5E7EB',
-    borderWidth: 1,
+    backgroundColor: COLORS.cardBackground,
+    borderColor: COLORS.glassBorder,
+    borderWidth: 1.2,
     borderRadius: 20,
     padding: 20,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 4,
     marginBottom: 28,
   },
   timelineNode: {
@@ -566,7 +601,7 @@ const styles = StyleSheet.create({
   },
   nodeTime: {
     fontSize: 11,
-    color: COLORS.textSecondary,
+    color: COLORS.accent,
     fontWeight: '600',
   },
   nodeMessage: {
@@ -595,16 +630,16 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
   },
   outlinedBtnText: {
-    color: COLORS.primary,
+    color: COLORS.textPrimary,
     fontSize: 13,
     fontWeight: '700',
   },
   outlinedBtnTextActive: {
-    color: COLORS.surface,
+    color: COLORS.textPrimary,
   },
   expandablePanel: {
-    backgroundColor: '#F9FAFB',
-    borderColor: '#E5E7EB',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
     borderRadius: 16,
     padding: 16,
@@ -622,7 +657,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
   traceLeft: {
     flexDirection: 'row',
@@ -659,8 +694,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: COLORS.surface,
-    borderColor: '#E5E7EB',
+    backgroundColor: 'rgba(255, 255, 255, 0.01)',
+    borderColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
     borderRadius: 12,
     padding: 12,
@@ -698,7 +733,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   backHomeBtnText: {
-    color: COLORS.primary,
+    color: COLORS.textPrimary,
     fontSize: 16,
     fontWeight: '700',
   },
