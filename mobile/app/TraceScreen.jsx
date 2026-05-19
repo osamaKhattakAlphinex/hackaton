@@ -4,13 +4,13 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   LayoutAnimation,
   Platform,
   UIManager,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
@@ -246,6 +246,10 @@ export default function TraceScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.bgContainer}>
+        <View style={styles.glowIndigo} />
+        <View style={styles.glowCyan} />
+      </View>
       {/* Header section (Dark #1E1B4B) */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
@@ -377,10 +381,36 @@ export default function TraceScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC', // Slate background for light areas
+    backgroundColor: COLORS.darkBackground,
+  },
+  bgContainer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.darkBackground,
+    zIndex: -1,
+    overflow: 'hidden',
+  },
+  glowIndigo: {
+    position: 'absolute',
+    top: -100,
+    left: -100,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(99, 102, 241, 0.14)',
+  },
+  glowCyan: {
+    position: 'absolute',
+    bottom: 100,
+    right: -120,
+    width: 340,
+    height: 340,
+    borderRadius: 170,
+    backgroundColor: 'rgba(34, 211, 238, 0.1)',
   },
   header: {
-    backgroundColor: '#1E1B4B', // Dark indigo header
+    backgroundColor: 'rgba(30, 27, 75, 0.4)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
     paddingBottom: 20,
     paddingTop: 12,
   },
@@ -400,7 +430,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: COLORS.textPrimary,
   },
   placeholder: {
     width: 44,
@@ -413,18 +443,20 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   headerSub: {
-    color: '#CBD5E1',
+    color: COLORS.textSecondary,
     fontSize: 14,
     fontWeight: '600',
   },
   durationBadge: {
-    backgroundColor: '#312E81',
+    backgroundColor: COLORS.primaryLight,
+    borderColor: COLORS.borderPrimary,
+    borderWidth: 1,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 8,
   },
   durationBadgeText: {
-    color: '#FFFFFF',
+    color: COLORS.textPrimary,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -438,26 +470,26 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: COLORS.cardBackground,
+    borderColor: COLORS.glassBorder,
+    borderWidth: 1.2,
+    borderRadius: 20,
     overflow: 'hidden',
-    borderColor: '#E2E8F0',
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 4,
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent',
   },
   cardHeaderExpanded: {
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
   agentCircle: {
     width: 38,
@@ -468,7 +500,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   agentCircleText: {
-    color: '#FFFFFF',
+    color: COLORS.textPrimary,
     fontWeight: '800',
     fontSize: 12,
   },
@@ -479,12 +511,12 @@ const styles = StyleSheet.create({
   agentName: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1E293B',
+    color: COLORS.textPrimary,
     marginBottom: 2,
   },
   agentDesc: {
     fontSize: 11,
-    color: '#64748B',
+    color: COLORS.textSecondary,
   },
   agentStatus: {
     flexDirection: 'row',
@@ -493,14 +525,14 @@ const styles = StyleSheet.create({
   },
   agentDuration: {
     fontSize: 12,
-    color: '#64748B',
+    color: COLORS.textSecondary,
     fontWeight: '600',
   },
   statusIcon: {
     marginRight: 2,
   },
   cardBody: {
-    backgroundColor: '#0F172A', // Dark screen body for JSON highlight
+    backgroundColor: 'rgba(2, 6, 23, 0.5)',
     padding: 16,
   },
   tokensCardRow: {
@@ -508,27 +540,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     marginBottom: 16,
-    backgroundColor: '#1E293B',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 8,
     alignSelf: 'flex-start',
   },
   tokensText: {
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
     fontSize: 12,
     fontWeight: '600',
   },
   jsonLabel: {
-    color: '#64748B',
+    color: COLORS.textSecondary,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.5,
     marginBottom: 8,
   },
   jsonScroll: {
-    backgroundColor: '#020617',
-    borderRadius: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderRadius: 12,
     padding: 12,
     marginBottom: 16,
   },
@@ -537,37 +573,37 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   jsonKey: {
-    color: '#93C5FD', // keys (blue)
+    color: '#93C5FD',
   },
   jsonString: {
-    color: '#86EFAC', // strings (green)
+    color: '#86EFAC',
   },
   jsonBoolean: {
-    color: '#F9A8D4', // booleans (pink)
+    color: '#F9A8D4',
   },
   jsonNumber: {
-    color: '#FCD34D', // numbers (yellow)
+    color: '#FCD34D',
   },
   jsonStandard: {
-    color: '#E2E8F0', // symbols (white-ish)
+    color: '#E2E8F0',
   },
   summaryTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1E293B',
+    color: COLORS.textPrimary,
     marginBottom: 14,
   },
   summaryCard: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E2E8F0',
-    borderWidth: 1,
-    borderRadius: 16,
+    backgroundColor: COLORS.cardBackground,
+    borderColor: COLORS.glassBorder,
+    borderWidth: 1.2,
+    borderRadius: 20,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 4,
   },
   table: {
     borderRadius: 12,
@@ -575,15 +611,15 @@ const styles = StyleSheet.create({
   },
   tableHeaderRow: {
     flexDirection: 'row',
-    backgroundColor: '#F8FAFC',
-    borderBottomColor: '#E2E8F0',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
     borderBottomWidth: 1,
     paddingVertical: 8,
     paddingHorizontal: 8,
   },
   tableRow: {
     flexDirection: 'row',
-    borderBottomColor: '#F1F5F9',
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
     borderBottomWidth: 1,
     paddingVertical: 10,
     paddingHorizontal: 8,
@@ -594,7 +630,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     paddingVertical: 12,
     paddingHorizontal: 12,
-    borderRadius: 8,
+    borderRadius: 12,
     marginTop: 10,
     alignItems: 'center',
   },
@@ -605,13 +641,13 @@ const styles = StyleSheet.create({
   },
   tableHeaderCell: {
     fontWeight: '700',
-    color: '#64748B',
+    color: COLORS.textSecondary,
   },
   tableCell: {
-    color: '#334155',
+    color: COLORS.textPrimary,
   },
   tableTotalCell: {
-    color: '#FFFFFF',
+    color: COLORS.textPrimary,
     fontWeight: '800',
     fontSize: 12,
   },

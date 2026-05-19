@@ -53,8 +53,8 @@ export const apiRequest = async (path, options = {}) => {
   const cleanPath = path.replace(/^\//, '');
   const url = `${cleanBase}/${cleanPath}`;
 
-  // pipelines run multiple LLM models and can be slow: default timeout is 30 seconds
-  const timeout = options.timeout || 30000;
+  // pipelines run multiple LLM models and can be slow: default timeout is 60 seconds
+  const timeout = options.timeout || 60000;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 

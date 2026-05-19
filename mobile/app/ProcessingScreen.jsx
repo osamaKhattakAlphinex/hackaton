@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   Animated,
   TouchableOpacity,
   Dimensions,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
@@ -250,6 +250,11 @@ export default function ProcessingScreen() {
         <Animated.View style={[styles.flashOverlay, { opacity: successFlashAnim }]} />
       )}
 
+      <View style={styles.bgContainer}>
+        <View style={styles.glowIndigo} />
+        <View style={styles.glowCyan} />
+      </View>
+
       {/* Header section with back button disabled on load */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -439,7 +444,31 @@ export default function ProcessingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A', // Dark background
+    backgroundColor: COLORS.darkBackground,
+  },
+  bgContainer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.darkBackground,
+    zIndex: -1,
+    overflow: 'hidden',
+  },
+  glowIndigo: {
+    position: 'absolute',
+    top: -100,
+    left: -100,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(99, 102, 241, 0.14)',
+  },
+  glowCyan: {
+    position: 'absolute',
+    bottom: 100,
+    right: -120,
+    width: 340,
+    height: 340,
+    borderRadius: 170,
+    backgroundColor: 'rgba(34, 211, 238, 0.1)',
   },
   flashOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -460,12 +489,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backBtnDisabled: {
-    opacity: 0.5,
+    opacity: 0.3,
   },
   headerTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
   },
   placeholder: {
     width: 44,
@@ -479,9 +508,9 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: COLORS.accent,
     zIndex: 2,
-    textShadowColor: 'rgba(79, 70, 229, 0.4)',
+    textShadowColor: 'rgba(34, 211, 238, 0.3)',
     textShadowOffset: { width: 0, height: 4 },
     textShadowRadius: 10,
   },
@@ -490,7 +519,7 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 70,
-    backgroundColor: COLORS.primary,
+    backgroundColor: 'rgba(34, 211, 238, 0.08)',
     zIndex: 1,
   },
   textHeadingSection: {
@@ -500,12 +529,12 @@ const styles = StyleSheet.create({
   statusTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: COLORS.textPrimary,
     marginBottom: 4,
   },
   statusSub: {
     fontSize: 16,
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
   },
   stepsContainer: {
     paddingHorizontal: 24,
@@ -519,11 +548,11 @@ const styles = StyleSheet.create({
   stepCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E293B', // Card background
-    borderRadius: 16,
+    backgroundColor: COLORS.cardBackground,
+    borderColor: COLORS.glassBorder,
+    borderWidth: 1.2,
+    borderRadius: 20,
     padding: 16,
-    borderColor: '#334155',
-    borderWidth: 1,
   },
   stepIconLeft: {
     width: 40,
@@ -533,16 +562,16 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   stepIconPending: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     borderWidth: 2,
-    borderColor: '#475569',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
   },
   stepIconActive: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: COLORS.primary,
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 0 },
@@ -556,52 +585,54 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 15,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: COLORS.textPrimary,
     marginBottom: 2,
   },
   stepDetail: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: COLORS.textSecondary,
   },
   stepRight: {
     justifyContent: 'center',
     alignItems: 'flex-end',
   },
   durationBadge: {
-    color: COLORS.primary,
-    fontSize: 12,
+    color: COLORS.textPrimary,
+    fontSize: 11,
     fontWeight: '600',
-    backgroundColor: '#EEF2FF',
+    backgroundColor: COLORS.primaryLight,
+    borderColor: COLORS.borderPrimary,
+    borderWidth: 1,
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 8,
   },
   errorCard: {
     marginHorizontal: 24,
-    backgroundColor: 'rgba(220, 38, 38, 0.1)',
-    borderColor: 'rgba(220, 38, 38, 0.3)',
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    borderColor: 'rgba(239, 68, 68, 0.25)',
+    borderWidth: 1.2,
+    borderRadius: 20,
+    padding: 20,
     alignItems: 'center',
     gap: 8,
     marginBottom: 16,
   },
   errorText: {
-    color: '#F87171',
+    color: COLORS.error,
     fontSize: 14,
     fontWeight: '500',
     textAlign: 'center',
   },
   retryBtn: {
     backgroundColor: COLORS.error,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
     marginTop: 8,
   },
   retryBtnText: {
-    color: '#FFFFFF',
+    color: COLORS.textPrimary,
     fontWeight: '700',
     fontSize: 14,
   },
@@ -615,7 +646,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelBtnText: {
-    color: '#EF4444',
+    color: COLORS.error,
     fontSize: 15,
     fontWeight: '600',
   },

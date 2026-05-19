@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -13,6 +12,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -83,6 +83,10 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="light" backgroundColor="transparent" translucent />
+      <View style={styles.bgContainer}>
+        <View style={styles.glowIndigo} />
+        <View style={styles.glowCyan} />
+      </View>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -221,7 +225,31 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.darkBackground,
+  },
+  bgContainer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.darkBackground,
+    zIndex: -1,
+    overflow: 'hidden',
+  },
+  glowIndigo: {
+    position: 'absolute',
+    top: -120,
+    left: -80,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(99, 102, 241, 0.16)',
+  },
+  glowCyan: {
+    position: 'absolute',
+    bottom: 60,
+    right: -100,
+    width: 360,
+    height: 360,
+    borderRadius: 180,
+    backgroundColor: 'rgba(34, 211, 238, 0.12)',
   },
   keyboardView: {
     flex: 1,
@@ -237,18 +265,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
   logoText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: COLORS.accent,
   },
   historyBtn: {
     width: 44,
     height: 44,
     justifyContent: 'center',
-    alignItems: 'right', // Standard align
     alignItems: 'center',
   },
   hero: {
@@ -284,38 +311,40 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
   },
   langBadgeInactive: {
-    backgroundColor: COLORS.primaryLight,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
   },
   langText: {
     fontSize: 14,
     fontWeight: '600',
   },
   langTextActive: {
-    color: COLORS.surface,
+    color: COLORS.textPrimary,
   },
   langTextInactive: {
-    color: COLORS.primary,
+    color: COLORS.textSecondary,
   },
   urduFont: {
     fontSize: 15,
   },
   inputCard: {
     marginHorizontal: 24,
-    backgroundColor: COLORS.surface,
-    borderColor: COLORS.borderPrimary,
-    borderWidth: 2,
-    borderRadius: 16,
-    padding: 12,
+    backgroundColor: COLORS.cardBackground,
+    borderColor: COLORS.glassBorder,
+    borderWidth: 1.5,
+    borderRadius: 20,
+    padding: 14,
     minHeight: 140,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
     marginBottom: 16,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 15,
+    elevation: 8,
   },
   inputCardFocused: {
-    borderColor: COLORS.primary,
+    borderColor: 'rgba(99, 102, 241, 0.6)',
   },
   textInput: {
     flex: 1,
@@ -334,7 +363,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -345,8 +374,8 @@ const styles = StyleSheet.create({
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEE2E2',
-    borderColor: '#FCA5A5',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderColor: 'rgba(239, 68, 68, 0.3)',
     borderWidth: 1,
     borderRadius: 12,
     padding: 12,
@@ -378,14 +407,16 @@ const styles = StyleSheet.create({
   gridItem: {
     width: '48%',
     height: 100,
-    backgroundColor: COLORS.primaryLight,
-    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    borderWidth: 1.2,
+    borderRadius: 16,
     padding: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   gridText: {
-    color: COLORS.primary,
+    color: COLORS.textPrimary,
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
@@ -401,15 +432,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 5,
   },
   sendButtonDisabled: {
     opacity: 0.8,
   },
   sendButtonText: {
-    color: COLORS.surface,
+    color: COLORS.textPrimary,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -419,7 +450,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   sendButtonTextLoading: {
-    color: COLORS.surface,
+    color: COLORS.textPrimary,
     fontSize: 16,
     fontWeight: '600',
   },

@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   LayoutAnimation,
@@ -11,6 +10,7 @@ import {
   UIManager,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
@@ -167,6 +167,10 @@ export default function ResultsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.bgContainer}>
+        <View style={styles.glowIndigo} />
+        <View style={styles.glowCyan} />
+      </View>
       {/* Custom navigation back button */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -386,7 +390,31 @@ export default function ResultsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.darkBackground,
+  },
+  bgContainer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.darkBackground,
+    zIndex: -1,
+    overflow: 'hidden',
+  },
+  glowIndigo: {
+    position: 'absolute',
+    top: -100,
+    left: -100,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(99, 102, 241, 0.14)',
+  },
+  glowCyan: {
+    position: 'absolute',
+    bottom: 100,
+    right: -120,
+    width: 340,
+    height: 340,
+    borderRadius: 170,
+    backgroundColor: 'rgba(34, 211, 238, 0.1)',
   },
   header: {
     height: 56,
@@ -395,7 +423,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
   backBtn: {
     width: 44,
@@ -423,16 +451,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   bestMatchCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.cardBackground,
     borderColor: COLORS.borderPrimary,
-    borderWidth: 2,
-    borderRadius: 16,
+    borderWidth: 1.5,
+    borderRadius: 20,
     overflow: 'hidden',
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 4,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 15,
+    elevation: 8,
     marginBottom: 24,
   },
   bestMatchStripe: {
@@ -441,7 +469,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   stripeText: {
-    color: COLORS.surface,
+    color: COLORS.textPrimary,
     fontWeight: '800',
     fontSize: 12,
     letterSpacing: 1.5,
@@ -501,7 +529,7 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 12,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   chipsRow: {
     flexDirection: 'row',
@@ -512,12 +540,14 @@ const styles = StyleSheet.create({
   },
   chip: {
     backgroundColor: COLORS.primaryLight,
+    borderColor: COLORS.borderPrimary,
+    borderWidth: 1,
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 12,
   },
   chipText: {
-    color: COLORS.primary,
+    color: COLORS.textPrimary,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -536,11 +566,11 @@ const styles = StyleSheet.create({
   priceValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: COLORS.success,
+    color: COLORS.accent,
   },
   divider: {
     height: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     marginHorizontal: 20,
     marginBottom: 16,
   },
@@ -552,6 +582,7 @@ const styles = StyleSheet.create({
   },
   bulbIcon: {
     marginTop: 2,
+    color: COLORS.accent,
   },
   explanationText: {
     flex: 1,
@@ -566,7 +597,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
+    borderTopColor: 'rgba(255, 255, 255, 0.05)',
   },
   expandableToggleText: {
     color: COLORS.primary,
@@ -584,27 +615,27 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   table: {
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(255, 255, 255, 0.08)',
     borderWidth: 1,
     borderRadius: 12,
     overflow: 'hidden',
   },
   tableHeaderRow: {
     flexDirection: 'row',
-    backgroundColor: '#F9FAFB',
-    borderBottomColor: '#E5E7EB',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
     borderBottomWidth: 1,
     paddingVertical: 8,
   },
   tableRow: {
     flexDirection: 'row',
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
     borderBottomWidth: 1,
     paddingVertical: 10,
   },
   tableRowWinner: {
-    backgroundColor: '#EEF2FF',
-    borderBottomColor: '#C7D2FE',
+    backgroundColor: COLORS.primaryLight,
+    borderBottomColor: COLORS.borderPrimary,
   },
   tableCol: {
     flex: 1,
@@ -619,7 +650,7 @@ const styles = StyleSheet.create({
     color: COLORS.textPrimary,
   },
   tableCellWinner: {
-    color: COLORS.primary,
+    color: COLORS.textPrimary,
     fontWeight: '600',
   },
   btnContainer: {
@@ -633,15 +664,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 3,
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 5,
   },
   confirmBtnDisabled: {
     opacity: 0.8,
   },
   confirmBtnText: {
-    color: COLORS.surface,
+    color: COLORS.textPrimary,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -651,13 +682,13 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   confirmBtnTextLoading: {
-    color: COLORS.surface,
+    color: COLORS.textPrimary,
     fontSize: 16,
     fontWeight: '600',
   },
   alternativesSection: {
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: 'rgba(255, 255, 255, 0.08)',
     paddingTop: 16,
   },
   alternativesToggle: {
@@ -676,10 +707,10 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   altCard: {
-    backgroundColor: '#F9FAFB',
-    borderColor: '#E5E7EB',
-    borderWidth: 1,
-    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1.2,
+    borderRadius: 20,
     padding: 16,
   },
   altCardHeader: {
@@ -696,7 +727,7 @@ const styles = StyleSheet.create({
   altScore: {
     fontSize: 13,
     fontWeight: '800',
-    color: COLORS.textSecondary,
+    color: COLORS.accent,
   },
   altWhyNot: {
     fontSize: 13,
@@ -708,11 +739,11 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     borderWidth: 1.5,
     paddingVertical: 8,
-    borderRadius: 10,
+    borderRadius: 12,
     alignItems: 'center',
   },
   altBookBtnText: {
-    color: COLORS.primary,
+    color: COLORS.textPrimary,
     fontSize: 13,
     fontWeight: '700',
   },
